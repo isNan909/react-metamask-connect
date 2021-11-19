@@ -1,0 +1,10 @@
+:root {
+  --main-bg-color: #1B1A27;
+}
+body {
+  background-color: var(--main-bg-color)!important;
+}
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
+}

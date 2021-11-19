@@ -1,0 +1,19 @@
+.App_wrapper {
+  display: grid;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  justify-items: center;
+  place-items: center;
+  min-height: 100vh;
+}
+.App_wrapper > div {
+  width: 50vw;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 30px;
+  border-radius: 10px;
+}
+.App_box {
+  background-color: #fff;
+}
