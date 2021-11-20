@@ -55,6 +55,7 @@ function App() {
       setInterval(() => {
         setError();
       }, 4000);
+      return
     }
     return provider;
   };
@@ -74,12 +75,16 @@ function App() {
         await currentProvider.request({ method: "eth_requestAccounts" });
         const web3 = new Web3(currentProvider);
         const userAccount = await web3.eth.getAccounts();
-        console.log(userAccount);
+        const chainId = await web3.eth.getChainId();
+        let ethBalance = await web3.eth.getBalance(userAccount[0]); // Get wallet balance
+        ethBalance = web3.utils.fromWei(ethBalance, 'ether'); //Convert balance to wei
+        console.log(chainId, userAccount, ethBalance);
         if (userAccount.length === 0) {
           console.log("please connect to meta mask");
         } else if (userAccount[0] !== connectedAccount) {
           setConnectedAccount(userAccount[0]);
           setIsConnected(true);
+          console.log('get user account');
         }
       }
     } catch (err) {
