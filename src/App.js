@@ -46,7 +46,6 @@ function App() {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const disconnectWallet = async () => {
-    console.log('disconnect wallet');
     try {
       const currentProvider = detectCurrentProvider();
       await currentProvider.request({ method: "eth_requestAccounts" });
@@ -55,7 +54,6 @@ function App() {
       window.location.reload(true);
     }
     catch { 
-      console.log('error');
       setError(
         "You are still not logged out."
       );
