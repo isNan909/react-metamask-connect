@@ -19,6 +19,12 @@ import {
   ModalBody,
   Button,
   ModalCloseButton,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
 } from "@chakra-ui/react";
 import { useDisclosure } from "@chakra-ui/react";
 import Web3 from "web3";
@@ -30,6 +36,8 @@ import Walletimage from "./assets/wallet.svg";
 function App() {
   const [isConnected, setIsConnected] = useState(false);
   const [connectedAccount, setConnectedAccount] = useState(null);
+  const [connectedBalance, setConnectedBalance] = useState(null);
+  const [connectedId, setConnectedId] = useState(null);
   const [error, setError] = useState();
   const [state, setState] = useState({
     valNep: "",
@@ -37,9 +45,25 @@ function App() {
   });
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  // const disconnectWallet = () => {
-  //   setIsConnected(false);
-  // };
+  const disconnectWallet = async () => {
+    console.log('disconnect wallet');
+    try {
+      const currentProvider = detectCurrentProvider();
+      await currentProvider.request({ method: "eth_requestAccounts" });
+      const web3 = new Web3(currentProvider);
+      web3.eth.accounts.wallet.clear();
+      window.location.reload(true);
+    }
+    catch { 
+      console.log('error');
+      setError(
+        "You are still not logged out."
+      );
+      setInterval(() => {
+        setError();
+      }, 4000);
+    }
+  };
 
   const detectCurrentProvider = () => {
     let provider;
@@ -55,7 +79,7 @@ function App() {
       setInterval(() => {
         setError();
       }, 4000);
-      return
+      return;
     }
     return provider;
   };
@@ -77,14 +101,14 @@ function App() {
         const userAccount = await web3.eth.getAccounts();
         const chainId = await web3.eth.getChainId();
         let ethBalance = await web3.eth.getBalance(userAccount[0]); // Get wallet balance
-        ethBalance = web3.utils.fromWei(ethBalance, 'ether'); //Convert balance to wei
-        console.log(chainId, userAccount, ethBalance);
+        ethBalance = web3.utils.fromWei(ethBalance, "ether"); //Convert balance to wei
         if (userAccount.length === 0) {
           console.log("please connect to meta mask");
         } else if (userAccount[0] !== connectedAccount) {
-          setConnectedAccount(userAccount[0]);
           setIsConnected(true);
-          console.log('get user account');
+          setConnectedAccount(userAccount[0]);
+          setConnectedBalance(ethBalance);
+          setConnectedId(chainId);
         }
       }
     } catch (err) {
@@ -100,12 +124,44 @@ function App() {
   function Accountmodal() {
     return (
       <>
-        <Modal onClose={onClose} isOpen={isOpen} isCentered>
+        <Modal onClose={onClose} isOpen={isOpen} size={"xl"} isCentered>
           <ModalOverlay />
           <ModalContent>
-            <ModalHeader>Modal Title</ModalHeader>
+            <ModalHeader>Wallet details</ModalHeader>
             <ModalCloseButton />
-            <ModalBody>{connectedAccount}</ModalBody>
+            <ModalBody>
+              <Table variant="simple">
+                <Thead>
+                  <Tr>
+                    <Th>KEY</Th>
+                    <Th isNumeric>VALUE</Th>
+                  </Tr>
+                </Thead>
+                <Tbody>
+                  <Tr>
+                    <Td>Account</Td>
+                    <Td isNumeric> {connectedAccount}</Td>
+                  </Tr>
+                  <Tr>
+                    <Td>ChainID</Td>
+                    <Td isNumeric> {connectedId}</Td>
+                  </Tr>
+                  <Tr>
+                    <Td>Balance</Td>
+                    <Td isNumeric> {connectedBalance}</Td>
+                  </Tr>
+                </Tbody>
+              </Table>
+            </ModalBody>
+            <Box p={5}>
+              <Button
+                onClick={disconnectWallet}
+                colorScheme="red" size="md"
+                width="100%"
+              >
+                Disconnect
+              </Button>
+            </Box>
           </ModalContent>
         </Modal>
       </>
