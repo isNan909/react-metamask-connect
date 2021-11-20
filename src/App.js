@@ -20,7 +20,7 @@ import {
   Button,
   ModalCloseButton,
 } from "@chakra-ui/react";
-import { useDisclosure } from "@chakra-ui/react"
+import { useDisclosure } from "@chakra-ui/react";
 import Web3 from "web3";
 import ErrorMessage from "./components/Errormessage";
 
@@ -74,11 +74,11 @@ function App() {
         await currentProvider.request({ method: "eth_requestAccounts" });
         const web3 = new Web3(currentProvider);
         const userAccount = await web3.eth.getAccounts();
+        console.log(userAccount);
         if (userAccount.length === 0) {
           console.log("please connect to meta mask");
         } else if (userAccount[0] !== connectedAccount) {
           setConnectedAccount(userAccount[0]);
-          console.log("Details of the account", connectedAccount);
           setIsConnected(true);
         }
       }
@@ -100,9 +100,7 @@ function App() {
           <ModalContent>
             <ModalHeader>Modal Title</ModalHeader>
             <ModalCloseButton />
-            <ModalBody>
-              <p>This is a description of the modal here</p>
-            </ModalBody>
+            <ModalBody>{connectedAccount}</ModalBody>
           </ModalContent>
         </Modal>
       </>
@@ -186,7 +184,7 @@ function App() {
         </div>
       </div>
       <ErrorMessage message={error} />
-      <Accountmodal/>
+      <Accountmodal />
     </>
   );
 }
