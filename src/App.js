@@ -11,9 +11,17 @@ import {
   NumberInputStepper,
   NumberIncrementStepper,
   NumberDecrementStepper,
-  Button,
   Box,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  Button,
+  ModalCloseButton,
 } from "@chakra-ui/react";
+import { useDisclosure } from "@chakra-ui/react"
+import Web3 from "web3";
 import ErrorMessage from "./components/Errormessage";
 
 import "./stylesheet/App.css";
@@ -21,30 +29,59 @@ import Walletimage from "./assets/wallet.svg";
 
 function App() {
   const [isConnected, setIsConnected] = useState(false);
+  const [connectedAccount, setConnectedAccount] = useState(null);
   const [error, setError] = useState();
   const [state, setState] = useState({
     valNep: "",
     valBusd: "",
   });
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
-  // const loggedIn = () => {
-  //   setIsConnected(true);
-  // };
-
-  // const loggedOut = () => {
+  // const disconnectWallet = () => {
   //   setIsConnected(false);
   // };
 
-  const onConnect = () => {
+  const detectCurrentProvider = () => {
+    let provider;
+    if (window.ethereum) {
+      provider = window.ethereum;
+    } else if (window.web3) {
+      // eslint-disable-next-line
+      provider = window.web3.currentProvider;
+    } else {
+      setError(
+        "No Ethereum wallet detected! Please install any available wallet."
+      );
+      setInterval(() => {
+        setError();
+      }, 4000);
+    }
+    return provider;
+  };
+
+  const onConnect = async () => {
     try {
-      if (!window.ethereum) {
-        setError("No crypto wallet found. Please install it.");
-        setInterval(() => {
-          setError();
-        }, 4000);
+      const currentProvider = detectCurrentProvider();
+      if (currentProvider) {
+        if (currentProvider !== window.ethereum) {
+          setError(
+            "No Ethereum browser detected! Please install any available wallet."
+          );
+          setInterval(() => {
+            setError();
+          }, 4000);
+        }
+        await currentProvider.request({ method: "eth_requestAccounts" });
+        const web3 = new Web3(currentProvider);
+        const userAccount = await web3.eth.getAccounts();
+        if (userAccount.length === 0) {
+          console.log("please connect to meta mask");
+        } else if (userAccount[0] !== connectedAccount) {
+          setConnectedAccount(userAccount[0]);
+          console.log("Details of the account", connectedAccount);
+          setIsConnected(true);
+        }
       }
-      // add connection with web3 here
-      console.log("commect with web3");
     } catch (err) {
       setError(
         "There was an error connecting to wallet. Please try again later."
@@ -54,6 +91,23 @@ function App() {
       }, 4000);
     }
   };
+
+  function Accountmodal() {
+    return (
+      <>
+        <Modal onClose={onClose} isOpen={isOpen} isCentered>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Modal Title</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <p>This is a description of the modal here</p>
+            </ModalBody>
+          </ModalContent>
+        </Modal>
+      </>
+    );
+  }
 
   function handleChange(evt) {
     const value = evt.target.value;
@@ -122,7 +176,7 @@ function App() {
             )}
             {isConnected && (
               <Box mt="25">
-                <Button colorScheme="green" variant="link">
+                <Button onClick={onOpen} colorScheme="green" variant="link">
                   <img src={Walletimage} alt="Wallet icon" />
                   <span>&nbsp;Check Wallet Details</span>
                 </Button>
@@ -132,6 +186,7 @@ function App() {
         </div>
       </div>
       <ErrorMessage message={error} />
+      <Accountmodal/>
     </>
   );
 }
